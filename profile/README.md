@@ -14,6 +14,29 @@ This repository is a personal learning workspace for following along with the bo
 > Instead, it was created from scratch to learn and practice the concepts hands-on.\
 > There might be some deviations from the book, such as using newer technologies like **Spring Boot 4**, exploring alternative approaches, or personal experimentation.
 
+## Repositories
+
+This organization hosts my implementation of Polar Bookshop from [Cloud Native Spring in Action](https://www.manning.com/books/cloud-native-spring-in-action).
+
+The table includes existing repositories and planned additions based on the book's final project. **Existing** means the repository has been created; development continues as I work through the book.
+
+| Repository           | Role                                                                                                                                   |  Status   |
+|----------------------|----------------------------------------------------------------------------------------------------------------------------------------|:---------:|
+| [polar-deployment]   | Environment setup and deployment configuration.<br>Currently contains Docker Compose; Kubernetes and GitOps configuration will follow. | Existing  |
+| [config-service]     | Spring Cloud Config Server that serves application configuration from Git.                                                             | Existing  |
+| [config-repo]        | Configuration YAML files served by Config Service.                                                                                     | Existing  |
+| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                                   | Existing  |
+| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                           | *Planned* |
+| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                                 | *Planned* |
+| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                                 | *Planned* |
+| `polar-ui`           | Angular frontend for browsing and managing books and placing and viewing orders.                                                       | *Planned* |
+| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.                                                        | *Planned* |
+| `quote-function`     | Spring Cloud Function implementation for retrieving book quotes.                                                                       | *Planned* |
+
+> [!NOTE]
+> *Planned repositories will be linked once they are created.*
+
+
 ## API Examples and Persistence Fields
 
 The Chapter 5 Catalog Service uses the `Book` persistence record directly as the request and response body, without separate DTOs or DTO/entity mapping.\
@@ -112,6 +135,13 @@ Feel free to submit questions, feedback, or errata to the forum dedicated to "Cl
 You are very welcome to contact me for questions, feedback, or suggestions.\
 Feel free to reach out to me on [Twitter](https://twitter.com/vitalethomas), [LinkedIn](https://www.linkedin.com/in/vitalethomas), [Mastodon](https://mastodon.online/@thomasvitale), [BlueSky](https://bsky.app/profile/thomasvitale.com) or here on [GitHub](https://github.com/ThomasVitale/).
 
+<!-- Repositories -->
+[polar-deployment]: https://github.com/fResult-PolarBookshop/polar-deployment
+[config-repo]: https://github.com/fResult-PolarBookshop/config-repo
+[config-service]: https://github.com/fResult-PolarBookshop/config-service
+[catalog-service]: https://github.com/fResult-PolarBookshop/catalog-service
+
+<!-- Chapters -->
 [chapter-03]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter03
 [chapter-04]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter04
 [chapter-05]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter05
