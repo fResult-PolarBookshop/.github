@@ -55,11 +55,11 @@ Chapters 3 and 4 do not have a `version` field on `Book`.
 Chapter after chapter, you'll build, containerize, and deploy cloud native applications.\
 Along the journey, you will need the following software installed.
 
-- Java 17+
+- Java 26+
   - OpenJDK: [Eclipse Temurin](https://adoptium.net)
   - GraalVM: [GraalVM](https://www.graalvm.org)
   - JDK Management: [SDKMAN](https://sdkman.io)
-- Docker 26+
+- Docker 29+
   - [Docker for Linux](https://docs.docker.com/engine/install/ubuntu/)
   - [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop)
   - [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
