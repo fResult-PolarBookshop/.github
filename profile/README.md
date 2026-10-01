@@ -18,7 +18,8 @@ This GitHub Organization is a personal learning workspace for following along wi
 
 This organization hosts my implementation of Polar Bookshop from [Cloud Native Spring in Action](https://www.manning.com/books/cloud-native-spring-in-action).
 
-The table includes existing repositories and planned additions based on the book's final project. **Existing** means the repository has been created; development continues as I work through the book.
+The table includes existing repositories and planned additions based on the book's final project.\
+**Existing** means the repository has been created; development continues as I work through the book.
 
 | Repository           | Role                                                                                                                                   |  Status   |
 |----------------------|----------------------------------------------------------------------------------------------------------------------------------------|:---------:|
