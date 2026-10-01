@@ -45,7 +45,7 @@ Its primitive `int version` field must be supplied in POST/PUT requests with the
 HTTPie examples therefore include `version:=0` (a JSON number).\
 For POST, zero represents a new entity.\
 For an existing book, the current PUT implementation uses the version loaded from the database instead of the submitted value, so this request field does not provide client-side stale-update detection.\
-See [Chapter 5's request-body notes](Chapter05/README.md#why-post-and-put-include-version) for details.
+See [Chapter 5's request-body notes]([Chapter05/README.md#why-post-and-put-include-version](https://github.com/fResult/cloud-native-spring-in-action/blob/main/Chapter05/README.md#why-post-and-put-include-version)) for details.
 
 This applies to the current Chapter 5 implementation.\
 Chapters 3 and 4 do not have a `version` field on `Book`.
