@@ -22,7 +22,7 @@ The table includes existing repositories and planned additions based on the book
 
 | Repository           | Role                                                                                                                                   |  Status   |
 |----------------------|----------------------------------------------------------------------------------------------------------------------------------------|:---------:|
-| [polar-deployment]   | Environment setup and deployment configuration.<br>Currently contains Docker Compose; Kubernetes and GitOps configuration will follow. | Existing  |
+| [polar-deployment]   | Environment setup and deployment configuration.<br>Currently contains Docker Compose and Kubernetes; GitOps configuration will follow. | Existing  |
 | [config-service]     | Spring Cloud Config Server that serves application configuration from Git.                                                             | Existing  |
 | [config-repo]        | Configuration YAML files served by Config Service.                                                                                     | Existing  |
 | [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                                   | Existing  |
