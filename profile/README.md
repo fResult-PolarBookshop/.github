@@ -2,7 +2,7 @@
 
 <a href="https://www.manning.com/books/cloud-native-spring-in-action"><img src="/book-cover.png" alt="The book cover of 'Cloud Native Spring in Action' by Thomas Vitale" align="left" height="200px" /></a>
 
-This repository is a personal learning workspace for following along with the book [Cloud Native Spring in Action - With Spring Boot and Kubernetes](https://www.manning.com/books/cloud-native-spring-in-action) written by [Thomas Vitale](https://www.thomasvitale.com/) and published by Manning Publications.
+This GitHub Organization is a personal learning workspace for following along with the book [Cloud Native Spring in Action - With Spring Boot and Kubernetes](https://www.manning.com/books/cloud-native-spring-in-action) written by [Thomas Vitale](https://www.thomasvitale.com/) and published by Manning Publications.
 
 <br clear="left">
 <br>
