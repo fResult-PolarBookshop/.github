@@ -36,7 +36,7 @@ It includes both available and planned repositories; it does not imply that ever
 Each application repository owns its source code, tests, container build, and CI workflow.
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
+%%{init: {'theme':'base','securityLevel':'loose','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
 flowchart TB
     browser[Browser] --> edge[edge-service]
     edge --> ui[polar-ui]
@@ -109,6 +109,11 @@ flowchart TB
     class deployment deployment;
     class order,dispatcher,edge,ui,quote,quoteFunction planned;
 
+    click deployment href "https://github.com/fResult-PolarBookshop/polar-deployment" "Open polar-deployment on GitHub" _blank
+    click catalog href "https://github.com/fResult-PolarBookshop/catalog-service" "Open catalog-service on GitHub" _blank
+    click config href "https://github.com/fResult-PolarBookshop/config-service" "Open config-service on GitHub" _blank
+    click configRepo href "https://github.com/fResult-PolarBookshop/config-repo" "Open config-repo on GitHub" _blank
+
     %% Blue HTTP, purple service call, green data, orange events, pink identity,
     %% amber configuration, teal telemetry, and gray provisioning.
     %% Bright strokes have at least 3:1 contrast against the fixed #333333 canvas.
@@ -121,6 +126,7 @@ flowchart TB
     linkStyle 16,17,18,19,20,21 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
     linkStyle 22,23 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
     linkStyle 24,25,26,27,28,29,30,31,32,33,34 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
+
 ```
 
 
