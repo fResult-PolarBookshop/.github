@@ -14,6 +14,10 @@ This GitHub Organization is a personal learning workspace for following along wi
 > Instead, it was created from scratch to learn and practice the concepts hands-on.\
 > There might be some deviations from the book, such as using newer technologies like **Spring Boot 4**, exploring alternative approaches, or personal experimentation.
 
+> [!TIP]
+> For the chapter-by-chapter learning workspace that these projects are extracted from, see [fResult/cloud-native-spring-in-action](https://github.com/fResult/cloud-native-spring-in-action).\
+> This organization hosts the standalone application repositories where their CI/CD pipelines run.
+
 ## Repositories
 
 This organization hosts my implementation of Polar Bookshop from [Cloud Native Spring in Action](https://www.manning.com/books/cloud-native-spring-in-action).
