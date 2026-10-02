@@ -1,163 +1,169 @@
-# 🍃 Cloud Native Spring in Action (Learning Repository)
+# Polar Bookshop
 
-<a href="https://www.manning.com/books/cloud-native-spring-in-action"><img src="/book-cover.png" alt="The book cover of 'Cloud Native Spring in Action' by Thomas Vitale" align="left" height="200px" /></a>
+A personal, repository-per-component implementation inspired by the Polar Bookshop system in [Cloud Native Spring in Action][book].
 
-This GitHub Organization is a personal learning workspace for following along with the book [Cloud Native Spring in Action - With Spring Boot and Kubernetes](https://www.manning.com/books/cloud-native-spring-in-action) written by [Thomas Vitale](https://www.thomasvitale.com/) and published by Manning Publications.
-
-<br clear="left">
-<br>
+This organization contains independently versioned services, shared runtime configuration, and environment deployment definitions.\
+It is a hands-on learning project, not an official implementation or a direct fork of the book source code.
 
 > [!NOTE]
-> The official source code for the book is available at [ThomasVitale/cloud-native-spring-in-action](https://github.com/ThomasVitale/cloud-native-spring-in-action).
-> 
-> This project is **not a direct fork** of the original repository.\
-> Instead, it was created from scratch to learn and practice the concepts hands-on.\
-> There might be some deviations from the book, such as using newer technologies like **Spring Boot 4**, exploring alternative approaches, or personal experimentation.
+> For the chapter-by-chapter learning workspace, see [fResult/cloud-native-spring-in-action][learning-repo].
 
-> [!TIP]
-> For the chapter-by-chapter learning workspace that these projects are extracted from, see [fResult/cloud-native-spring-in-action](https://github.com/fResult/cloud-native-spring-in-action).\
-> This organization hosts the standalone application repositories where their CI/CD pipelines run.
+## System repositories
 
-## Repositories
+The responsibilities below describe the intended role of each component in the Polar Bookshop architecture.\
+They are a guide derived from the book's final project—not a promise to reproduce its code, design, dependencies, or release versions exactly.
 
-This organization hosts my implementation of Polar Bookshop from [Cloud Native Spring in Action](https://www.manning.com/books/cloud-native-spring-in-action).
+| Repository           | Responsibility                                                                               |   Status   |
+|----------------------|----------------------------------------------------------------------------------------------|:----------:|
+| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                         | Available  |
+| [config-service]     | Configuration server that serves application configuration from Git.                         | Available  |
+| [config-repo]        | Version-controlled, externalized application configuration consumed by Config Service.       | Available  |
+| [polar-deployment]   | Environment setup and deployment configuration, including local and Kubernetes resources.    | Available  |
+| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status. |  Planned   |
+| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.       |  Planned   |
+| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.       |  Planned   |
+| `polar-ui`           | Frontend for browsing and managing books, and placing and viewing orders.                    |  Planned   |
+| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.              |  Planned   |
+| `quote-function`     | Function-based service for retrieving book quotes.                                           |  Planned   |
 
-The table includes existing repositories and planned additions based on the book's final project.\
-**Existing** means the repository has been created; development continues as I work through the book.
+## Target architecture
 
-| Repository           | Role                                                                                                                                   |  Status   |
-|----------------------|----------------------------------------------------------------------------------------------------------------------------------------|:---------:|
-| [polar-deployment]   | Environment setup and deployment configuration.<br>Currently contains Docker Compose and Kubernetes; GitOps configuration will follow. | Existing  |
-| [config-service]     | Spring Cloud Config Server that serves application configuration from Git.                                                             | Existing  |
-| [config-repo]        | Configuration YAML files served by Config Service.                                                                                     | Existing  |
-| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                                   | Existing  |
-| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                           | *Planned* |
-| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                                 | *Planned* |
-| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                                 | *Planned* |
-| `polar-ui`           | Angular frontend for browsing and managing books and placing and viewing orders.                                                       | *Planned* |
-| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.                                                        | *Planned* |
-| `quote-function`     | Spring Cloud Function implementation for retrieving book quotes.                                                                       | *Planned* |
+The diagram shows the target topology for this organization.\
+It is informed by the final Polar Bookshop project from the book and the repositories published by the [PolarBookshop reference organization][polarbookshop-reference].\
+It includes both available and planned repositories; it does not imply that every component is already deployed or that this implementation will mirror the reference code, design, dependencies, or release versions exactly.
 
-> [!NOTE]
-> *Planned repositories will be linked once they are created.*
+`polar-deployment` provides the runtime environment around the services—for example, Docker Compose, Kubernetes resources, backing services, and delivery configuration.\
+Each application repository owns its source code, tests, container build, and CI workflow.
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
+flowchart TB
+    browser[Browser] --> edge[edge-service]
+    edge --> ui[polar-ui]
+    edge --> catalog[catalog-service]
+    edge --> order[order-service]
+
+    order -->|checks catalog| catalog
+    catalog -->|polardb_catalog| postgres[(PostgreSQL)]
+    order -->|polardb_order| postgres
+    order -->|publishes order-accepted| rabbit[RabbitMQ]
+    rabbit -->|consumes order-accepted| dispatcher[dispatcher-service]
+    dispatcher -->|publishes order-dispatched| rabbit
+    rabbit -->|consumes order-dispatched| order
+
+    edge --> redis[(Redis)]
+    edge --> keycloak[Keycloak]
+    catalog --> keycloak
+    order --> keycloak
+
+    configRepo[config-repo] -->|Git backend; catalog config only| config[config-service]
+
+    catalog --> telemetry[Observability stack]
+    order --> telemetry
+    dispatcher --> telemetry
+    edge --> telemetry
+    config --> telemetry
+    ui -->|container logs| telemetry
+
+    %% Chapter 16 serverless examples are deployed independently with their KService manifests.
+    quote[quote-service] -. "knative/kservice.yml" .-> knative[Knative Serving platform]
+    quoteFunction[quote-function] -. "knative/kservice.yml" .-> knative
+
+    deployment[polar-deployment] -. provisions and deploys .-> edge
+    deployment -. provisions and deploys .-> catalog
+    deployment -. provisions and deploys .-> order
+    deployment -. provisions and deploys .-> dispatcher
+    deployment -. provisions and deploys .-> ui
+    deployment -. provisions and deploys .-> config
+    deployment -. provisions .-> postgres
+    deployment -. provisions .-> rabbit
+    deployment -. provisions .-> redis
+    deployment -. provisions .-> keycloak
+    deployment -. provisions .-> telemetry
+
+    %% Fixed #333333 canvas: the diagram looks the same in light and dark mode.
+    %% Every node uses dark text on a light background (WCAG AA or better).
+    classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:2px;
+    classDef gateway fill:#EDE9FE,stroke:#6D28D9,color:#2E1065,stroke-width:2px;
+    classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px;
+    classDef serverless fill:#F3E8FF,stroke:#7E22CE,color:#3B0764,stroke-width:2px;
+    classDef data fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:2px;
+    classDef messaging fill:#FFEDD5,stroke:#C2410C,color:#7C2D12,stroke-width:2px;
+    classDef identity fill:#FCE7F3,stroke:#BE185D,color:#831843,stroke-width:2px;
+    classDef configuration fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:2px;
+    classDef observability fill:#CFFAFE,stroke:#0E7490,color:#164E63,stroke-width:2px;
+    classDef platform fill:#E2E8F0,stroke:#475569,color:#0F172A,stroke-width:2px;
+    classDef deployment fill:#F1F5F9,stroke:#475569,color:#0F172A,stroke-width:2px;
+    classDef planned stroke-dasharray:5 5;
+
+    class browser client;
+    class edge gateway;
+    class ui,catalog,order,dispatcher service;
+    class quote,quoteFunction serverless;
+    class postgres,redis data;
+    class rabbit messaging;
+    class keycloak identity;
+    class configRepo,config configuration;
+    class telemetry observability;
+    class knative platform;
+    class deployment deployment;
+    class order,dispatcher,edge,ui,quote,quoteFunction planned;
+
+    %% Blue HTTP, purple service call, green data, orange events, pink identity,
+    %% amber configuration, teal telemetry, and gray provisioning.
+    %% Bright strokes have at least 3:1 contrast against the fixed #333333 canvas.
+    linkStyle 0,1,2,3 stroke:#60A5FA,color:#1E3A8A,stroke-width:2.5px;
+    linkStyle 4 stroke:#C4B5FD,color:#4C1D95,stroke-width:2.5px;
+    linkStyle 5,6,11 stroke:#4ADE80,color:#14532D,stroke-width:2.5px;
+    linkStyle 7,8,9,10 stroke:#FDBA74,color:#7C2D12,stroke-width:2.5px;
+    linkStyle 12,13,14 stroke:#F9A8D4,color:#831843,stroke-width:2.5px;
+    linkStyle 15 stroke:#FCD34D,color:#78350F,stroke-width:2.5px;
+    linkStyle 16,17,18,19,20,21 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
+    linkStyle 22,23 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
+    linkStyle 24,25,26,27,28,29,30,31,32,33,34 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
+```
 
 
-## API Examples and Persistence Fields
+## Implementation approach
 
-The Chapter 5 Catalog Service uses the `Book` persistence record directly as the request and response body, without separate DTOs or DTO/entity mapping.\
-Its primitive `int version` field must be supplied in POST/PUT requests with the current JSON configuration; omitting it results in HTTP 400 during deserialization.
+The book provides the architectural direction, tooling, and learning path.\
+Each repository is created from scratch and can deliberately differ from the book when newer, more suitable, or more maintainable choices are available.
 
-HTTPie examples therefore include `version:=0` (a JSON number).\
-For POST, zero represents a new entity.\
-For an existing book, the current PUT implementation uses the version loaded from the database instead of the submitted value, so this request field does not provide client-side stale-update detection.\
-See [Chapter 5's request-body notes]([Chapter05/README.md#why-post-and-put-include-version](https://github.com/fResult/cloud-native-spring-in-action/blob/main/Chapter05/README.md#why-post-and-put-include-version)) for details.
+Examples of intentional differences may include:
 
-This applies to the current Chapter 5 implementation.\
-Chapters 3 and 4 do not have a `version` field on `Book`.
+- Current Java, Spring Boot, dependency, container, and GitHub Actions versions rather than the versions published with the book.
+- Immutable data structures and functional patterns, with [Vavr][vavr] as a primary library where appropriate.
+- Alternative designs and implementation details while preserving the component's learning objective.
 
-## Prerequisites
+Repository documentation is the source of truth for the implementation, prerequisites, supported commands, APIs, and deployment instructions of that component.
 
-Chapter after chapter, you'll build, containerize, and deploy cloud native applications.\
-Along the journey, you will need the following software installed.
+## Related projects
 
-- Java 26+
-  - OpenJDK: [Eclipse Temurin](https://adoptium.net)
-  - GraalVM: [GraalVM](https://www.graalvm.org)
-  - JDK Management: [SDKMAN](https://sdkman.io)
-- Docker 29+
-  - [Docker for Linux](https://docs.docker.com/engine/install/ubuntu/)
-  - [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop)
-  - [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
-- Kubernetes 1.30+
-  - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-  - [minikube](https://minikube.sigs.k8s.io/docs/)
-- Other
-  - [HTTPie](https://httpie.org/)
+- [Official book source code][official-source]
+- [Polar Bookshop UI reference][polar-ui-reference]
+- [My chapter-by-chapter learning repository][learning-repo]
 
-## Gradle and Maven
-
-The code samples in the book use Gradle as the build tool.\
-Should you prefer Maven, here's a table mapping Gradle commands to Maven so that you can easily follow along.
-
-| Gradle                     | Maven                                        | 
-|----------------------------|----------------------------------------------|
-| `./gradlew clean`          | `./mvnw clean`                               |
-| `./gradlew build`          | `./mvnw install`                             |
-| `./gradlew test`           | `./mvnw test`                                |
-| `./gradlew bootJar`        | `./mvnw spring-boot:repackage`               |
-| `./gradlew bootRun`        | `./mvnw spring-boot:run`                     |
-| `./gradlew bootBuildImage` | `./mvnw spring-boot:build-image -DskipTests` |
-
-## Guides, Tools and Tips
-
-- [Configuring IntelliJ IDEA](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/configuring-intellij-idea.md)
-- [Configuring Visual Studio Code](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/configuring-visual-studio-code.md)
-- [Knative Platform Cloud Installation](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/knative-platform-cloud-installation.md)
-- [Minikube configuration behind a proxy](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/minikube-configuration-behind-a-proxy.md)
-- [Observability setup on Kubernetes](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/grafana-observability-stack)
-- [Replacing Kubeval with Kubeconform](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/replacing-kubeval-with-kubeconform.md)
-- [Replacing Octant](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/replacing-octant.md)
-- [Setting up a Kubernetes cluster for Polar Bookshop on Azure](#)
-- [Setting up a Kubernetes cluster for Polar Bookshop on DigitalOcean](#)
-- [Testing RabbitMQ with Testcontainers](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/testing-rabbitmq-with-testcontainers.md)
-- [Working with macOS on Apple Silicon](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/working-with-macos-on-apple-silicon.md)
-- [Working with macOS on Intel](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/working-with-macos-on-intel.md)
-- [Working with Windows](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Guides/working-with-windows.md)
-
-## Source Code by Chapter
-
-| Chapter                                          | Starting point                                                                                         | Intermediate version                                                                                                 | Final version                                                                                      | My version             |
-|--------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|--------------------------|
-| 1. Introduction to cloud native                  | -                                                                                                      | -                                                                                                                    | -                                                                                                  | -                       |
-| 2. Cloud native patterns and technologies        | [02-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter02/02-begin) | -                                                                                                                    | [02-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter02/02-end) | -                       |
-| 3. Getting started with cloud native development | [03-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter03/03-begin) | -                                                                                                                    | [03-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter03/03-end) | [Chapter 3][chapter-03] |
-| 4. Externalized configuration management         | [04-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter04/04-begin) | -                                                                                                                    | [04-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter04/04-end) | [Chapter 4][chapter-04] |
-| 5. Persisting and managing data in the cloud     | [05-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter05/05-begin) | [05-intermediate](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter05/05-intermediate) | [05-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter05/05-end) | [Chapter 5][chapter-05] |
-| 6. Containerizing Spring Boot                    | [06-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter06/06-begin) | -                                                                                                                    | [06-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter06/06-end) | [Chatper 6][chapter-06] |
-| 7. Kubernetes fundamentals for Spring Boot       | [07-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter07/07-begin) | -                                                                                                                    | [07-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter07/07-end) | [Chatper 7][chapter-07] |
-| 8. Reactive Spring: Resilience and scalability   | [08-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter08/08-begin) | -                                                                                                                    | [08-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter08/08-end) |                         |
-| 9. API gateway and circuit breakers              | [09-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter09/09-begin) | -                                                                                                                    | [09-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter09/09-end) |                         |
-| 10. Event-driven applications and functions      | [10-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter10/10-begin) | [10-intermediate](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter10/10-intermediate) | [10-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter10/10-end) |                         |
-| 11. Security: Authentication and SPA             | [11-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter11/11-begin) | -                                                                                                                    | [11-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter11/11-end) |                         |
-| 12. Security: Authorization and auditing         | [12-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter12/12-begin) | -                                                                                                                    | [12-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter12/12-end) |                         |
-| 13. Observability and monitoring                 | [13-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter13/13-begin) | -                                                                                                                    | [13-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter13/13-end) |                         |
-| 14. Configuration and secrets management         | [14-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter14/14-begin) | -                                                                                                                    | [14-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter14/14-end) |                         |
-| 15. Continuous delivery and GitOps               | [15-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter15/15-begin) | -                                                                                                                    | [15-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter15/15-end) |                         |
-| 16. Serverless, GraalVM and Knative              | [16-begin](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter16/16-begin) | -                                                                                                                    | [10-end](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/Chapter16/16-end) |                         |
-
-## Polar Bookshop
-
-The final project developed throughout the book is available [here](https://github.com/ThomasVitale/cloud-native-spring-in-action/tree/main/PolarBookshop).
-
-You can find the source code for the Angular frontend [here](https://github.com/PolarBookshop/polar-ui/tree/v1).
-
-## Book Forum
-
-Feel free to submit questions, feedback, or errata to the forum dedicated to "Cloud Native Spring in Action": https://livebook.manning.com/book/cloud-native-spring-in-action/.
-
-## Contact the Author
-
-You are very welcome to contact me for questions, feedback, or suggestions.\
-Feel free to reach out to me on [Twitter](https://twitter.com/vitalethomas), [LinkedIn](https://www.linkedin.com/in/vitalethomas), [Mastodon](https://mastodon.online/@thomasvitale), [BlueSky](https://bsky.app/profile/thomasvitale.com) or here on [GitHub](https://github.com/ThomasVitale/).
-
-<!-- Repositories -->
-[polar-deployment]: https://github.com/fResult-PolarBookshop/polar-deployment
-[config-repo]: https://github.com/fResult-PolarBookshop/config-repo
-[config-service]: https://github.com/fResult-PolarBookshop/config-service
+[book]: https://www.manning.com/books/cloud-native-spring-in-action
+[official-source]: https://github.com/ThomasVitale/cloud-native-spring-in-action
+[learning-repo]: https://github.com/fResult/cloud-native-spring-in-action
+[polar-ui-reference]: https://github.com/PolarBookshop/polar-ui/tree/v1
+[polarbookshop-reference]: https://github.com/PolarBookshop
 [catalog-service]: https://github.com/fResult-PolarBookshop/catalog-service
+[config-service]: https://github.com/fResult-PolarBookshop/config-service
+[config-repo]: https://github.com/fResult-PolarBookshop/config-repo
+[polar-deployment]: https://github.com/fResult-PolarBookshop/polar-deployment
+[vavr]: https://vavr.io/
 
-<!-- Chapters -->
-[chapter-03]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter03
-[chapter-04]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter04
-[chapter-05]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter05
-[chapter-06]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter06
-[chapter-07]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter07
-[chapter-08]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter08
-[chapter-09]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter09
-[chapter-10]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter10
-[chapter-11]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter11
-[chapter-12]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter12
-[chapter-13]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter13
-[chapter-14]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter14
-[chapter-15]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter15
-[chapter-16]: https://github.com/fResult/cloud-native-spring-in-action/tree/main/Chapter16
+<footer>
+  <div align=center>
+    <br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>.<br><br>
+  </div>
+
+  <p align=center>
+    [This Space Intentionally Left Blank]
+  </p>
+
+  <p align=center>
+    The bottom of every page is padded so readers can maintain a consistent eyeline.
+  </p>
+</footer>
