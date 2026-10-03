@@ -13,18 +13,18 @@ It is a hands-on learning project, not an official implementation or a direct fo
 The responsibilities below describe the intended role of each component in the Polar Bookshop architecture.\
 They are a guide derived from the book's final project—not a promise to reproduce its code, design, dependencies, or release versions exactly.
 
-| Repository           | Responsibility                                                                               |   Status   |
-|----------------------|----------------------------------------------------------------------------------------------|:----------:|
-| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                         | Available  |
-| [config-service]     | Configuration server that serves application configuration from Git.                         | Available  |
-| [config-repo]        | Version-controlled, externalized application configuration consumed by Config Service.       | Available  |
-| [polar-deployment]   | Environment setup and deployment configuration, including local and Kubernetes resources.    | Available  |
-| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status. |  Planned   |
-| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.       |  Planned   |
-| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.       |  Planned   |
-| `polar-ui`           | Frontend for browsing and managing books, and placing and viewing orders.                    |  Planned   |
-| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.              |  Planned   |
-| `quote-function`     | Function-based service for retrieving book quotes.                                           |  Planned   |
+| Repository           | Responsibility                                                                                                              |  Status   |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
+| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                        | Available |
+| [config-service]     | Configuration server that serves application configuration from Git.                                                        | Available |
+| [config-repo]        | Version-controlled, externalized application configuration consumed by Config Service.                                      | Available |
+| [polar-deployment]   | Environment setup and deployment configuration, including local and Kubernetes resources.                                   | Available |
+| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                |  Planned  |
+| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                      |  Planned  |
+| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                      |  Planned  |
+| `polar-ui`           | Frontend for browsing and managing books, and placing and viewing orders.                                                   |  Planned  |
+| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.                                             |  Planned  |
+| `quote-function`     | API gateway for routing requests and cross-cutting concerns, including authentication, rate limiting, and circuit breakers. |  Planned  |
 
 ## Target architecture
 
@@ -126,7 +126,6 @@ flowchart TB
     linkStyle 16,17,18,19,20,21 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
     linkStyle 22,23 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
     linkStyle 24,25,26,27,28,29,30,31,32,33,34 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
-
 ```
 
 
