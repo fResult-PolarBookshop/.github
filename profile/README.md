@@ -16,10 +16,10 @@ They are a guide derived from the book's final project—not a promise to reprod
 | Repository           | Responsibility                                                                                                              |  Status   |
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
 | [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                        | Available |
+| [order-service]      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                | Available |
 | [config-service]     | Configuration server that serves application configuration from Git.                                                        | Available |
 | [config-repo]        | Version-controlled, externalized application configuration consumed by Config Service.                                      | Available |
 | [polar-deployment]   | Environment setup and deployment configuration, including local and Kubernetes resources.                                   | Available |
-| `order-service`      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                |  Planned  |
 | `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                      |  Planned  |
 | `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                      |  Planned  |
 | `polar-ui`           | Frontend for browsing and managing books, and placing and viewing orders.                                                   |  Planned  |
@@ -154,6 +154,7 @@ Repository documentation is the source of truth for the implementation, prerequi
 [polar-ui-reference]: https://github.com/PolarBookshop/polar-ui/tree/v1
 [polarbookshop-reference]: https://github.com/PolarBookshop
 [catalog-service]: https://github.com/fResult-PolarBookshop/catalog-service
+[order-service]: https://github.com/fResult-PolarBookshop/order-service
 [config-service]: https://github.com/fResult-PolarBookshop/config-service
 [config-repo]: https://github.com/fResult-PolarBookshop/config-repo
 [polar-deployment]: https://github.com/fResult-PolarBookshop/polar-deployment
