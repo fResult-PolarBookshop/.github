@@ -113,6 +113,7 @@ flowchart TB
     click catalog href "https://github.com/fResult-PolarBookshop/catalog-service" "Open catalog-service on GitHub" _blank
     click config href "https://github.com/fResult-PolarBookshop/config-service" "Open config-service on GitHub" _blank
     click configRepo href "https://github.com/fResult-PolarBookshop/config-repo" "Open config-repo on GitHub" _blank
+    click order href "https://github.com/fResult-PolarBookshop/order-service" "Open order-service on GitHub" _blank
 
     %% Blue HTTP, purple service call, green data, orange events, pink identity,
     %% amber configuration, teal telemetry, and gray provisioning.
