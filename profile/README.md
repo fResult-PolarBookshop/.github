@@ -156,6 +156,7 @@ Each repository is created from scratch and can deliberately differ from the boo
 Examples of intentional differences may include:
 
 - Current Java, Spring Boot, dependency, container, and GitHub Actions versions rather than the versions published with the book.
+- Kotlin in selected services, alongside Java where appropriate.
 - Immutable data structures and functional patterns, with [Vavr][vavr] as a primary library where appropriate.
 - Alternative designs and implementation details while preserving the component's learning objective.
 
@@ -178,6 +179,8 @@ Repository documentation is the source of truth for the implementation, prerequi
 [config-repo]: https://github.com/fResult-PolarBookshop/config-repo
 [polar-deployment]: https://github.com/fResult-PolarBookshop/polar-deployment
 [vavr]: https://vavr.io/
+
+---
 
 <footer>
   <div align=center>
