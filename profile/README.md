@@ -36,27 +36,42 @@ It includes both available and planned repositories; it does not imply that ever
 Each application repository owns its source code, tests, container build, and CI workflow.
 
 ```mermaid
+%% Polar Bookshop — target topology, clarified from the reference implementation.
+%% polar-ui serves SPA assets only; once loaded, its Angular code runs in the Browser.
 %%{init: {'theme':'base','securityLevel':'loose','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
 flowchart TB
-    browser[Browser] --> edge[edge-service]
-    edge --> ui[polar-ui]
-    edge --> catalog[catalog-service]
-    edge --> order[order-service]
+    browser[Browser]
+    edge[edge-service<br/>API gateway / BFF]
+    ui[polar-ui<br/>Angular SPA assets]
 
-    order -->|checks catalog| catalog
-    catalog -->|polardb_catalog| postgres[(PostgreSQL)]
+    %% The initial document/assets pass through the gateway; edge reverse-proxies polar-ui.
+    browser -->|GET /, JS, CSS, favicon| edge
+    edge -->|reverse proxy: SPA/static assets| ui
+
+
+    %% After the SPA is loaded, the Browser—not polar-ui's server—makes these requests.
+    browser -->|XHR/fetch: /books, /orders, /user<br/>OAuth2 login/logout| edge
+    edge -->|/books/**; TokenRelay| catalog[catalog-service]
+    edge -->|/orders/**; TokenRelay| order[order-service]
+
+    %% Internal synchronous call; it does not go back through the gateway.
+    order -->|checks catalog directly| catalog
+
+    catalog -->|polardb_catalog| postgres[(PostgreSQL<br/>one instance; two logical databases)]
     order -->|polardb_order| postgres
     order -->|publishes order-accepted| rabbit[RabbitMQ]
     rabbit -->|consumes order-accepted| dispatcher[dispatcher-service]
     dispatcher -->|publishes order-dispatched| rabbit
     rabbit -->|consumes order-dispatched| order
 
-    edge --> redis[(Redis)]
-    edge --> keycloak[Keycloak]
-    catalog --> keycloak
-    order --> keycloak
+    edge -->|session store / rate limiting| redis[(Redis)]
+    edge -->|OAuth2 client / session| keycloak[Keycloak]
+    catalog -->|JWT issuer/JWK discovery| keycloak
+    order -->|JWT issuer/JWK discovery| keycloak
 
-    configRepo[config-repo] -->|Git backend; catalog config only| config[config-service]
+    %% Target dependency only: reference application configs currently disable Config Client.
+    configRepo[config-repo<br/>catalog configuration] -->|Git backend| config[config-service]
+    config -.->|planned externalized config| catalog
 
     catalog --> telemetry[Observability stack]
     order --> telemetry
@@ -65,24 +80,23 @@ flowchart TB
     config --> telemetry
     ui -->|container logs| telemetry
 
-    %% Chapter 16 serverless examples are deployed independently with their KService manifests.
+    %% Independent Chapter 16 serverless examples.
     quote[quote-service] -. "knative/kservice.yml" .-> knative[Knative Serving platform]
-    quoteFunction[quote-function] -. "knative/kservice.yml" .-> knative
+    quoteFunction[quote-function<br/>Spring Cloud Function] -. "knative/kservice.yml" .-> knative
 
-    deployment[polar-deployment] -. provisions and deploys .-> edge
-    deployment -. provisions and deploys .-> catalog
-    deployment -. provisions and deploys .-> order
-    deployment -. provisions and deploys .-> dispatcher
-    deployment -. provisions and deploys .-> ui
-    deployment -. provisions and deploys .-> config
+    deployment[polar-deployment] -. deploys & provisions .-> edge
+    deployment -. deploys & provisions .-> ui
+    deployment -. deploys & provisions .-> catalog
+    deployment -. deploys & provisions .-> order
+    deployment -. deploys & provisions .-> dispatcher
+    deployment -. deploys & provisions .-> config
     deployment -. provisions .-> postgres
     deployment -. provisions .-> rabbit
     deployment -. provisions .-> redis
     deployment -. provisions .-> keycloak
     deployment -. provisions .-> telemetry
 
-    %% Fixed #333333 canvas: the diagram looks the same in light and dark mode.
-    %% Every node uses dark text on a light background (WCAG AA or better).
+    %% Fixed #333333 canvas: consistent in light and dark mode.
     classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:2px;
     classDef gateway fill:#EDE9FE,stroke:#6D28D9,color:#2E1065,stroke-width:2px;
     classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px;
@@ -107,26 +121,30 @@ flowchart TB
     class telemetry observability;
     class knative platform;
     class deployment deployment;
-    class order,dispatcher,edge,ui,quote,quoteFunction planned;
+    class config planned;
 
     click deployment href "https://github.com/fResult-PolarBookshop/polar-deployment" "Open polar-deployment on GitHub" _blank
+    %% click edge href "https://github.com/fResult-PolarBookshop/edge-service" "Open edge-service on GitHub" _blank
+    %% click ui href "https://github.com/fResult-PolarBookshop/polar-ui" "Open polar-ui on GitHub" _blank
     click catalog href "https://github.com/fResult-PolarBookshop/catalog-service" "Open catalog-service on GitHub" _blank
+    click order href "https://github.com/fResult-PolarBookshop/order-service" "Open order-service on GitHub" _blank
+    %% click dispatcher href "https://github.com/fResult-PolarBookshop/dispatcher-service" "Open dispatcher-service on GitHub" _blank
     click config href "https://github.com/fResult-PolarBookshop/config-service" "Open config-service on GitHub" _blank
     click configRepo href "https://github.com/fResult-PolarBookshop/config-repo" "Open config-repo on GitHub" _blank
-    click order href "https://github.com/fResult-PolarBookshop/order-service" "Open order-service on GitHub" _blank
+    %% click quote href "https://github.com/fResult-PolarBookshop/quote-service" "Open quote-service on GitHub" _blank
+    %% click quoteFunction href "https://github.com/fResult-PolarBookshop/quote-function" "Open quote-function on GitHub" _blank
 
-    %% Blue HTTP, purple service call, green data, orange events, pink identity,
-    %% amber configuration, teal telemetry, and gray provisioning.
-    %% Bright strokes have at least 3:1 contrast against the fixed #333333 canvas.
-    linkStyle 0,1,2,3 stroke:#60A5FA,color:#1E3A8A,stroke-width:2.5px;
-    linkStyle 4 stroke:#C4B5FD,color:#4C1D95,stroke-width:2.5px;
-    linkStyle 5,6,11 stroke:#4ADE80,color:#14532D,stroke-width:2.5px;
-    linkStyle 7,8,9,10 stroke:#FDBA74,color:#7C2D12,stroke-width:2.5px;
-    linkStyle 12,13,14 stroke:#F9A8D4,color:#831843,stroke-width:2.5px;
-    linkStyle 15 stroke:#FCD34D,color:#78350F,stroke-width:2.5px;
-    linkStyle 16,17,18,19,20,21 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
-    linkStyle 22,23 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
-    linkStyle 24,25,26,27,28,29,30,31,32,33,34 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
+    %% Blue HTTP, purple internal service call, green data, orange events, pink identity,
+    %% amber configuration, teal telemetry, purple serverless, and gray provisioning.
+    linkStyle 0,1,2,3,4 stroke:#60A5FA,color:#1E3A8A,stroke-width:2.5px;
+    linkStyle 5 stroke:#C4B5FD,color:#4C1D95,stroke-width:2.5px;
+    linkStyle 6,7,12 stroke:#4ADE80,color:#14532D,stroke-width:2.5px;
+    linkStyle 8,9,10,11 stroke:#FDBA74,color:#7C2D12,stroke-width:2.5px;
+    linkStyle 13,14,15 stroke:#F9A8D4,color:#831843,stroke-width:2.5px;
+    linkStyle 16,17 stroke:#FCD34D,color:#78350F,stroke-width:2.5px;
+    linkStyle 18,19,20,21,22,23 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
+    linkStyle 24,25 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
+    linkStyle 26,27,28,29,30,31,32,33,34,35,36 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
 ```
 
 
