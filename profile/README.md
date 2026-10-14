@@ -51,8 +51,8 @@ flowchart TB
 
     %% After the SPA is loaded, the Browser—not polar-ui's server—makes these requests.
     browser browserToEdgeApi@-->|XHR/fetch: /books, /orders, /user<br/>OAuth2 login/logout| edge
-    edge edgeToCatalog@-->|/books/**; TokenRelay| catalog[catalog-service]
-    edge edgeToOrder@-->|/orders/**; TokenRelay| order[order-service]
+    edge edgeToCatalog@-->|/books/**; TokenRelay| catalog["[catalog-service]"]
+    edge edgeToOrder@-->|/orders/**; TokenRelay| order["[order-service]"]
 
     %% Internal synchronous call; it does not go back through the gateway.
     order orderToCatalog@-->|checks catalog directly| catalog
@@ -60,7 +60,7 @@ flowchart TB
     catalog catalogToPostgres@-->|polardb_catalog| postgres[(PostgreSQL<br/>one instance; two logical databases)]
     order orderToPostgres@-->|polardb_order| postgres
     order orderToRabbitAccepted@-->|publishes order-accepted| rabbit[RabbitMQ]
-    rabbit rabbitToDispatcher@-->|consumes order-accepted| dispatcher[dispatcher-service]
+    rabbit rabbitToDispatcher@-->|consumes order-accepted| dispatcher["[dispatcher-service]"]
     dispatcher dispatcherToRabbitDispatched@-->|publishes order-dispatched| rabbit
     rabbit rabbitToOrder@-->|consumes order-dispatched| order
 
