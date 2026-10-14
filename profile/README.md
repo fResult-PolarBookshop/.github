@@ -74,7 +74,7 @@ flowchart TB
 
     configRepo configRepoToConfig@-->|Git-backed configuration| config
     config configToCatalog@-->|serves externalized configuration| catalog
-    config configToOrder@-.->|planned: serves externalized configuration| order
+    config configToOrder@-.->|serves externalized configuration| order
 
     catalog catalogToTelemetry@--> telemetry[Observability stack]
     order orderToTelemetry@--> telemetry
