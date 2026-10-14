@@ -38,6 +38,7 @@ Each application repository owns its source code, tests, container build, and CI
 ```mermaid
 %% Polar Bookshop — target topology, clarified from the reference implementation.
 %% polar-ui serves SPA assets only; once loaded, its Angular code runs in the Browser.
+%% Config Server reads Git-backed configuration and serves it to Config Clients.
 %%{init: {'theme':'base','securityLevel':'loose','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
 flowchart TB
     browser[Browser]
@@ -45,59 +46,66 @@ flowchart TB
     ui[polar-ui<br/>Angular SPA assets]
 
     %% The initial document/assets pass through the gateway; edge reverse-proxies polar-ui.
-    browser -->|GET /, JS, CSS, favicon| edge
-    edge -->|reverse proxy: SPA/static assets| ui
-
+    browser browserToEdgeAssets@-->|GET /, JS, CSS, favicon| edge
+    edge edgeToUi@-->|reverse proxy: SPA/static assets| ui
 
     %% After the SPA is loaded, the Browser—not polar-ui's server—makes these requests.
-    browser -->|XHR/fetch: /books, /orders, /user<br/>OAuth2 login/logout| edge
-    edge -->|/books/**; TokenRelay| catalog[catalog-service]
-    edge -->|/orders/**; TokenRelay| order[order-service]
+    browser browserToEdgeApi@-->|XHR/fetch: /books, /orders, /user<br/>OAuth2 login/logout| edge
+    edge edgeToCatalog@-->|/books/**; TokenRelay| catalog[catalog-service]
+    edge edgeToOrder@-->|/orders/**; TokenRelay| order[order-service]
 
     %% Internal synchronous call; it does not go back through the gateway.
-    order -->|checks catalog directly| catalog
+    order orderToCatalog@-->|checks catalog directly| catalog
 
-    catalog -->|polardb_catalog| postgres[(PostgreSQL<br/>one instance; two logical databases)]
-    order -->|polardb_order| postgres
-    order -->|publishes order-accepted| rabbit[RabbitMQ]
-    rabbit -->|consumes order-accepted| dispatcher[dispatcher-service]
-    dispatcher -->|publishes order-dispatched| rabbit
-    rabbit -->|consumes order-dispatched| order
+    catalog catalogToPostgres@-->|polardb_catalog| postgres[(PostgreSQL<br/>one instance; two logical databases)]
+    order orderToPostgres@-->|polardb_order| postgres
+    order orderToRabbitAccepted@-->|publishes order-accepted| rabbit[RabbitMQ]
+    rabbit rabbitToDispatcher@-->|consumes order-accepted| dispatcher[dispatcher-service]
+    dispatcher dispatcherToRabbitDispatched@-->|publishes order-dispatched| rabbit
+    rabbit rabbitToOrder@-->|consumes order-dispatched| order
 
-    edge -->|session store / rate limiting| redis[(Redis)]
-    edge -->|OAuth2 client / session| keycloak[Keycloak]
-    catalog -->|JWT issuer/JWK discovery| keycloak
-    order -->|JWT issuer/JWK discovery| keycloak
+    edge edgeToRedis@-->|session store / rate limiting| redis[(Redis)]
+    edge edgeToKeycloak@-->|OAuth2 client / session| keycloak[Keycloak]
+    catalog catalogToKeycloak@-->|JWT issuer/JWK discovery| keycloak
+    order orderToKeycloak@-->|JWT issuer/JWK discovery| keycloak
 
-    %% Target dependency only: reference application configs currently disable Config Client.
-    configRepo[config-repo<br/>application configuration] -->|Git-backend configuration| config[config-service]
-    config -.->|serves externalized config| catalog
-    config -.->|serves externalized config| order
+    configRepo[config-repo<br/>application configuration]
+    config[config-service]
 
-    catalog --> telemetry[Observability stack]
-    order --> telemetry
-    dispatcher --> telemetry
-    edge --> telemetry
-    config --> telemetry
-    ui -->|container logs| telemetry
+    configRepo configRepoToConfig@-->|Git-backed configuration| config
+    config configToCatalog@-->|serves externalized configuration| catalog
+    config configToOrder@-.->|planned: serves externalized configuration| order
+
+    catalog catalogToTelemetry@--> telemetry[Observability stack]
+    order orderToTelemetry@--> telemetry
+    dispatcher dispatcherToTelemetry@--> telemetry
+    edge edgeToTelemetry@--> telemetry
+    config configToTelemetry@--> telemetry
+    ui uiToTelemetry@-->|container logs| telemetry
 
     %% Independent Chapter 16 serverless examples.
-    quote[quote-service] -. "knative/kservice.yml" .-> knative[Knative Serving platform]
-    quoteFunction[quote-function<br/>Spring Cloud Function] -. "knative/kservice.yml" .-> knative
+    quote[quote-service]
+    quoteFunction[quote-function<br/>Spring Cloud Function]
+    knative[Knative Serving platform]
 
-    deployment[polar-deployment] -. deploys & provisions .-> edge
-    deployment -. deploys & provisions .-> ui
-    deployment -. deploys & provisions .-> catalog
-    deployment -. deploys & provisions .-> order
-    deployment -. deploys & provisions .-> dispatcher
-    deployment -. deploys & provisions .-> config
-    deployment -. provisions .-> postgres
-    deployment -. provisions .-> rabbit
-    deployment -. provisions .-> redis
-    deployment -. provisions .-> keycloak
-    deployment -. provisions .-> telemetry
+    quote quoteToKnative@-.->|knative/kservice.yml| knative
+    quoteFunction quoteFunctionToKnative@-.->|knative/kservice.yml| knative
 
-    %% Fixed #333333 canvas: consistent in light and dark mode.
+    deployment[polar-deployment]
+
+    deployment deploymentToEdge@-.->|deploys & provisions| edge
+    deployment deploymentToUi@-.->|deploys & provisions| ui
+    deployment deploymentToCatalog@-.->|deploys & provisions| catalog
+    deployment deploymentToOrder@-.->|deploys & provisions| order
+    deployment deploymentToDispatcher@-.->|deploys & provisions| dispatcher
+    deployment deploymentToConfig@-.->|deploys & provisions| config
+    deployment deploymentToPostgres@-.->|provisions| postgres
+    deployment deploymentToRabbit@-.->|provisions| rabbit
+    deployment deploymentToRedis@-.->|provisions| redis
+    deployment deploymentToKeycloak@-.->|provisions| keycloak
+    deployment deploymentToTelemetry@-.->|provisions| telemetry
+
+    %% Node styles.
     classDef client fill:#E0F2FE,stroke:#0369A1,color:#0C4A6E,stroke-width:2px;
     classDef gateway fill:#EDE9FE,stroke:#6D28D9,color:#2E1065,stroke-width:2px;
     classDef service fill:#DBEAFE,stroke:#1D4ED8,color:#172554,stroke-width:2px;
@@ -122,7 +130,30 @@ flowchart TB
     class telemetry observability;
     class knative platform;
     class deployment deployment;
-    class config planned;
+
+    %% Planned components only. config-service is available, so it is intentionally excluded.
+    class edge,ui,dispatcher,quote,quoteFunction planned;
+
+    %% Edge styles, referenced by stable edge IDs rather than declaration indexes.
+    classDef httpLink stroke:#60A5FA,color:#1E3A8A,stroke-width:2.5px;
+    classDef internalLink stroke:#C4B5FD,color:#4C1D95,stroke-width:2.5px;
+    classDef dataLink stroke:#4ADE80,color:#14532D,stroke-width:2.5px;
+    classDef eventLink stroke:#FDBA74,color:#7C2D12,stroke-width:2.5px;
+    classDef identityLink stroke:#F9A8D4,color:#831843,stroke-width:2.5px;
+    classDef configurationLink stroke:#FCD34D,color:#78350F,stroke-width:2.5px;
+    classDef telemetryLink stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
+    classDef serverlessLink stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
+    classDef provisioningLink stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
+
+    class browserToEdgeAssets,edgeToUi,browserToEdgeApi,edgeToCatalog,edgeToOrder httpLink;
+    class orderToCatalog internalLink;
+    class catalogToPostgres,orderToPostgres,edgeToRedis dataLink;
+    class orderToRabbitAccepted,rabbitToDispatcher,dispatcherToRabbitDispatched,rabbitToOrder eventLink;
+    class edgeToKeycloak,catalogToKeycloak,orderToKeycloak identityLink;
+    class configRepoToConfig,configToCatalog,configToOrder configurationLink;
+    class catalogToTelemetry,orderToTelemetry,dispatcherToTelemetry,edgeToTelemetry,configToTelemetry,uiToTelemetry telemetryLink;
+    class quoteToKnative,quoteFunctionToKnative serverlessLink;
+    class deploymentToEdge,deploymentToUi,deploymentToCatalog,deploymentToOrder,deploymentToDispatcher,deploymentToConfig,deploymentToPostgres,deploymentToRabbit,deploymentToRedis,deploymentToKeycloak,deploymentToTelemetry provisioningLink;
 
     click deployment href "https://github.com/fResult-PolarBookshop/polar-deployment" "Open polar-deployment on GitHub" _blank
     %% click edge href "https://github.com/fResult-PolarBookshop/edge-service" "Open edge-service on GitHub" _blank
@@ -134,18 +165,6 @@ flowchart TB
     click configRepo href "https://github.com/fResult-PolarBookshop/config-repo" "Open config-repo on GitHub" _blank
     %% click quote href "https://github.com/fResult-PolarBookshop/quote-service" "Open quote-service on GitHub" _blank
     %% click quoteFunction href "https://github.com/fResult-PolarBookshop/quote-function" "Open quote-function on GitHub" _blank
-
-    %% Blue HTTP, purple internal service call, green data, orange events, pink identity,
-    %% amber configuration, teal telemetry, purple serverless, and gray provisioning.
-    linkStyle 0,1,2,3,4 stroke:#60A5FA,color:#1E3A8A,stroke-width:2.5px;
-    linkStyle 5 stroke:#C4B5FD,color:#4C1D95,stroke-width:2.5px;
-    linkStyle 6,7,12 stroke:#4ADE80,color:#14532D,stroke-width:2.5px;
-    linkStyle 8,9,10,11 stroke:#FDBA74,color:#7C2D12,stroke-width:2.5px;
-    linkStyle 13,14,15 stroke:#F9A8D4,color:#831843,stroke-width:2.5px;
-    linkStyle 16,17 stroke:#FCD34D,color:#78350F,stroke-width:2.5px;
-    linkStyle 18,19,20,21,22,23 stroke:#5EEAD4,color:#164E63,stroke-width:2.5px;
-    linkStyle 24,25 stroke:#C4B5FD,color:#3B0764,stroke-width:2.5px;
-    linkStyle 26,27,28,29,30,31,32,33,34,35,36 stroke:#CBD5E1,color:#0F172A,stroke-width:2px;
 ```
 
 
