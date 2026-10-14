@@ -42,8 +42,8 @@ Each application repository owns its source code, tests, container build, and CI
 %%{init: {'theme':'base','securityLevel':'loose','themeVariables':{'darkMode':true,'background':'#333333','primaryColor':'#FFFFFF','primaryTextColor':'#0F172A','primaryBorderColor':'#CBD5E1','secondaryColor':'#F8FAFC','secondaryTextColor':'#0F172A','tertiaryColor':'#F8FAFC','tertiaryTextColor':'#0F172A','lineColor':'#CBD5E1','textColor':'#F8FAFC','edgeLabelBackground':'#F8FAFC','nodeTextColor':'#0F172A','fontSize':'16px'},'themeCSS':'svg { background-color: #333333 !important; } .edgeLabel, .edgeLabel p { background-color: #F8FAFC !important; color: #0F172A !important; }'}}%%
 flowchart TB
     browser[Browser]
-    edge[edge-service<br/>API gateway / BFF]
-    ui[polar-ui<br/>Angular SPA assets]
+    edge["[edge-service]<br/>API gateway / BFF"]
+    ui["[polar-ui]<br/>Angular SPA assets"]
 
     %% The initial document/assets pass through the gateway; edge reverse-proxies polar-ui.
     browser browserToEdgeAssets@-->|GET /, JS, CSS, favicon| edge
@@ -69,8 +69,8 @@ flowchart TB
     catalog catalogToKeycloak@-->|JWT issuer/JWK discovery| keycloak
     order orderToKeycloak@-->|JWT issuer/JWK discovery| keycloak
 
-    configRepo[config-repo<br/>application configuration]
-    config[config-service]
+    configRepo["[config-repo]<br/>application configuration"]
+    config["[config-service]"]
 
     configRepo configRepoToConfig@-->|Git-backed configuration| config
     config configToCatalog@-->|serves externalized configuration| catalog
