@@ -13,18 +13,18 @@ It is a hands-on learning project, not an official implementation or a direct fo
 The responsibilities below describe the intended role of each component in the Polar Bookshop architecture.\
 They are a guide derived from the book's final project—not a promise to reproduce its code, design, dependencies, or release versions exactly.
 
-| Repository           | Responsibility                                                                                                              |  Status   |
-|----------------------|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
-| [catalog-service]    | REST API for managing the book catalog, with PostgreSQL persistence.                                                        | Available |
-| [order-service]      | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                | Available |
-| [config-service]     | Configuration server that serves application configuration from Git.                                                        | Available |
-| [config-repo]        | Version-controlled, externalized application configuration consumed by Config Service.                                      | Available |
-| [polar-deployment]   | Environment setup and deployment configuration, including local and Kubernetes resources.                                   | Available |
-| `edge-service`       | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                      |  Planned  |
-| `dispatcher-service` | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                      |  Planned  |
-| `polar-ui`           | Frontend for browsing and managing books, and placing and viewing orders.                                                   |  Planned  |
-| `quote-service`      | Reactive REST API for retrieving book quotes, including random quotes by genre.                                             |  Planned  |
-| `quote-function`     | API gateway for routing requests and cross-cutting concerns, including authentication, rate limiting, and circuit breakers. |  Planned  |
+|            Repository            | Responsibility                                                                                                              |  Status   |
+|:--------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|:---------:|
+|   [catalog-service]<br>(Java)    | REST API for managing the book catalog, with PostgreSQL persistence.                                                        | Available |
+|   [order-service]<br>(Kotlin)    | Reactive API for placing book orders, storing them in PostgreSQL, and tracking their status.                                | Available |
+|    [config-service]<br>(Java)    | Configuration server that serves application configuration from Git.                                                        | Available |
+|          [config-repo]           | Version-controlled, externalized application configuration consumed by Config Service.                                      | Available |
+|        [polar-deployment]        | Environment setup and deployment configuration, including local and Kubernetes resources.                                   | Available |
+|    `edge-service`<br>(Kotlin)    | API gateway for routing requests, authentication, rate limiting, and circuit breakers.                                      |  Planned  |
+| `dispatcher-service`<br>(Kotlin) | Processes accepted-order events and publishes dispatch notifications through RabbitMQ.                                      |  Planned  |
+|     `polar-ui`<br>(Angular)      | Frontend for browsing and managing books, and placing and viewing orders.                                                   |  Planned  |
+|         `quote-service`          | Reactive REST API for retrieving book quotes, including random quotes by genre.                                             |  Planned  |
+|         `quote-function`         | API gateway for routing requests and cross-cutting concerns, including authentication, rate limiting, and circuit breakers. |  Planned  |
 
 ## Target architecture
 
