@@ -70,8 +70,9 @@ flowchart TB
     order -->|JWT issuer/JWK discovery| keycloak
 
     %% Target dependency only: reference application configs currently disable Config Client.
-    configRepo[config-repo<br/>catalog configuration] -->|Git backend| config[config-service]
-    config -.->|planned externalized config| catalog
+    configRepo[config-repo<br/>catalog configuration] -->|Git-backend configuration| config[config-service]
+    config -.->|serves externalized config| catalog
+    config -.->|serves externalized config| order
 
     catalog --> telemetry[Observability stack]
     order --> telemetry
