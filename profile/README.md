@@ -28,12 +28,16 @@ They are a guide derived from the book's final project—not a promise to reprod
 
 ## Target architecture
 
-The diagram shows the target topology for this organization.\
-It is informed by the final Polar Bookshop project from the book and the repositories published by the [PolarBookshop reference organization][polarbookshop-reference].\
+The diagram shows the intended target topology for this organization.\
+It is inspired by the final Polar Bookshop project from the book and the repositories published by the [PolarBookshop reference organization][polarbookshop-reference], but it represents this project's own architectural direction—not a reproduction of the reference implementation.
+
+Components, integrations, technologies, and operational decisions may intentionally be added, omitted, or designed differently as the learning project evolves.\
+For example, this target architecture includes shared externalized configuration for services beyond those configured that way in the reference implementation.
+
 It includes both available and planned repositories; it does not imply that every component is already deployed or that this implementation will mirror the reference code, design, dependencies, or release versions exactly.
 
 `polar-deployment` provides the runtime environment around the services—for example, Docker Compose, Kubernetes resources, backing services, and delivery configuration.\
-Each application repository owns its source code, tests, container build, and CI workflow.
+Each application repository owns its source code, tests, container build, and CI workflow
 
 ```mermaid
 %% Polar Bookshop — target topology, clarified from the reference implementation.
