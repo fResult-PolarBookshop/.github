@@ -84,14 +84,14 @@ flowchart TB
     ui uiToTelemetry@-->|container logs| telemetry
 
     %% Independent Chapter 16 serverless examples.
-    quote[quote-service]
-    quoteFunction[quote-function<br/>Spring Cloud Function]
+    quote["[quote-service]"]
+    quoteFunction["[quote-function]<br/>Spring Cloud Function"]
     knative[Knative Serving platform]
 
     quote quoteToKnative@-.->|knative/kservice.yml| knative
     quoteFunction quoteFunctionToKnative@-.->|knative/kservice.yml| knative
 
-    deployment[polar-deployment]
+    deployment["[polar-deployment]"]
 
     deployment deploymentToEdge@-.->|deploys & provisions| edge
     deployment deploymentToUi@-.->|deploys & provisions| ui
